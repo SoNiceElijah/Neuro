@@ -1,8 +1,9 @@
 #ifndef __NETWORK_H__
 #define __NETWORK_H__
 
-#include <iostream>;
+#include <fstream>
 #include "neuro.hpp";
+#include <sstream>
 
 
 class network {
@@ -11,13 +12,16 @@ private:
 
 	double error;
 	double avgError;
-	static double lastAvgError;
+	static double smooth;
 public:
 	network(std::vector<int> topology);
 	void feed(std::vector<double> input);
 	std::vector<double> run();
-	void correct(double* target);
-	double getAvgError() const { return lastAvgError; }
+	void correct(std::vector<double> target);
+	double getAvgError() const { return avgError; }
+
+	void store(const char* name);
+	static network load(const char* name);
 };
 
 #endif

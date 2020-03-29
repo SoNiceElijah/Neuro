@@ -5,12 +5,12 @@ double neuron::e = 0.15;
 
 double neuron::activation(double x)
 {
-	return (2 / M_PI) * atan(x);
+	return tanh(x);
 }
 
 double neuron::derivative(double x)
 {
-	return (2 / M_PI) * (1 / (x * x + 1));
+	return 1.0 - x * x;
 }
 
 neuron::neuron()
@@ -20,8 +20,8 @@ neuron::neuron()
 
 neuron::neuron(layer& _prev)
 {
-	prev = _prev;
-	int len = prev.size();
+	prev = &_prev;
+	int len = prev->size();
 
 	for (int i = 0; i < len; ++i)
 	{
@@ -34,7 +34,7 @@ neuron::neuron(layer& _prev)
 
 void neuron::after(layer& _next)
 {
-	next = _next;
+	next = &_next;
 }
 
 void neuron::value(double v)
@@ -50,10 +50,39 @@ double neuron::value()
 void neuron::calculate()
 {
 	double sum = 0.0;
-	for (int i = 0; i < prev.size() - 1; ++i)
+	for (int i = 0; i < prev->size(); ++i)
 	{
-		sum += prev[i].value() * weight[i];
+		sum += (*(prev))[i].value() * weight[i];
 	}
 
 	val = neuron::activation(sum);
 }
+
+void neuron::outputGrad(double target)
+{
+	grad = (target - val) * neuron::derivative(val);
+}
+
+void neuron::hiddenGrad()
+{
+	double sum = 0.0;
+
+	int len = (next->size() - 1);
+	for (int i = 0; i< len; ++i)
+	{
+		sum += (*next)[i].weight[idx] * (*next)[i].grad;
+	}
+
+	grad = sum * neuron::derivative(val);
+}
+
+void neuron::update()
+{
+	for (int i = 0; i < prev->size(); ++i)
+	{
+		delta[i] = neuron::e * (*prev)[i].val * grad + neuron::a * delta[i];
+		weight[i] += delta[i];
+	}
+}
+
+
